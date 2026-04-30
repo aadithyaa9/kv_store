@@ -36,5 +36,14 @@ func main() {
 	}()
 
 	// graceful shutdown
-	
+	stop := make(chan os.Signal, 1)
+	signal.Notify(stop, os.Interrupt)
+
+	<-stop
+	log.Println("Shutting down...")
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	server.Shutdown(ctx)
 }
