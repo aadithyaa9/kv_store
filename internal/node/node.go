@@ -9,8 +9,8 @@ import (
 	"net/http"
 	"time"
 
-	"kvstore/internal/ring"
-	"kvstore/internal/store"
+	"github.com/aadithyaa9/kv_store/internal/ring"
+	"github.com/aadithyaa9/kv_store/internal/store"
 )
 
 // Node is both a data store AND a coordinator.

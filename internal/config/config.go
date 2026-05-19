@@ -2,12 +2,14 @@ package config
 
 import (
 	"os"
+	"strconv"
 	"strings"
 )
 
 type Config struct {
-	Port  string
-	Peers []string
+	Port   string
+	Peers  []string
+	VNodes int     
 }
 
 func Load() *Config {
@@ -16,14 +18,21 @@ func Load() *Config {
 		port = "8001"
 	}
 
-	peerStr := os.Getenv("PEERS")
 	var peers []string
-	if peerStr != "" {
+	if peerStr := os.Getenv("PEERS"); peerStr != "" {
 		peers = strings.Split(peerStr, ",")
 	}
 
+	vnodes := 150                          
+	if v := os.Getenv("VNODES"); v != "" {
+		if n, err := strconv.Atoi(v); err == nil && n > 0 {
+			vnodes = n
+		}
+	}                                      
+
 	return &Config{
-		Port:  port,
-		Peers: peers,
+		Port:   port,
+		Peers:  peers,
+		VNodes: vnodes,                    
 	}
 }

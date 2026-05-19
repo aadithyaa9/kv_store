@@ -8,10 +8,10 @@ import (
 	"os/signal"
 	"time"
 
-	"kvstore/internal/config"
-	"kvstore/internal/logger"
-	"kvstore/internal/node"
-	"kvstore/internal/transport"
+	"github.com/aadithyaa9/kv_store/internal/config"
+	"github.com/aadithyaa9/kv_store/internal/logger"
+	"github.com/aadithyaa9/kv_store/internal/node"
+	"github.com/aadithyaa9/kv_store/internal/transport"
 )
 
 func main() {

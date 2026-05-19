@@ -141,3 +141,16 @@ func (r *Ring) Size() int {
 	defer r.mu.RUnlock()
 	return len(r.sorted)
 }
+
+func (r *Ring) PositionsFor(addr string) []uint32 {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+
+	var positions []uint32
+	for _, pos := range r.sorted {
+		if r.nodeMap[pos] == addr {
+			positions = append(positions, pos)
+		}
+	}
+	return positions
+}
