@@ -8,10 +8,10 @@ import (
 	"os/signal"
 	"time"
 
-	"github.com/aadithyaa9/kv_store/internal/config"
-	"github.com/aadithyaa9/kv_store/internal/logger"
-	"github.com/aadithyaa9/kv_store/internal/node"
-	"github.com/aadithyaa9/kv_store/internal/transport"
+	"kvstore/internal/config"
+	"kvstore/internal/logger"
+	"kvstore/internal/node"
+	"kvstore/internal/transport"
 )
 
 func main() {
@@ -19,7 +19,7 @@ func main() {
 	cfg := config.Load()
 
 	addr := "localhost:" + cfg.Port
-	n := node.New(addr, cfg.Peers)
+	n := node.New(addr, cfg.Peers, cfg.VNodes)
 
 	handler := transport.NewHandler(n)
 
@@ -29,21 +29,30 @@ func main() {
 	}
 
 	go func() {
-		log.Printf("Node running at %s", addr)
+		log.Printf("Node running at %s | vnodes=%d | peers=%v", addr, cfg.VNodes, cfg.Peers)
 		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			log.Fatal(err)
+			log.Fatalf("server error: %v", err)
 		}
 	}()
 
-	// graceful shutdown
+	// Block until Ctrl+C
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, os.Interrupt)
-
 	<-stop
-	log.Println("Shutting down...")
 
+	log.Println("Shutting down gracefully...")
+
+	// ── Graceful shutdown sequence ──────────────────────────────────────────
+	// Step 1: Remove self from ring (so new requests route elsewhere)
+	n.RemoveNode(n.Addr)
+
+	// Step 2: Migrate all locally owned keys to their new ring-assigned owners
+	n.MigrateKeys()
+
+	// Step 3: Stop accepting new connections, wait for in-flight to finish
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-
 	server.Shutdown(ctx)
+
+	log.Println("Shutdown complete")
 }
